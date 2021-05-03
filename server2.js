@@ -6,7 +6,7 @@ const { buildSchema } = require('graphql')
 const schema = buildSchema(`
     type Query {
         course(id: Int!): Course
-        title(title: String): [Course]
+        getCourseByTitle(title: String!): [Course]
         courses(topic: String): [Course]
     },
     type Mutation {
@@ -57,9 +57,8 @@ const coursesData = [
 ]
 
 const getCourse = (args) => {
-  const id = args.id
   return coursesData.filter((course) => {
-    return course.id == id
+    return course.id === args.id
   })[0]
 }
 
@@ -72,17 +71,12 @@ const getCourses = (args) => {
   }
 }
 
-const getTitle = (args) => {
-  const course = coursesData.map((course) => {
-    if (course.title.includes(args.title)) {
-      return course
-    }
-  })
-  return course
+const getCourseByTitle = (args) => {
+  return coursesData.filter((course) => course.title.toLowerCase().includes(args.title.toLowerCase()))
 }
 
 const createCourse = (args) => {
-  const course = coursesData.push(args)
+  coursesData.push(args)
   return coursesData.map((course) => {
     return course
   })
@@ -92,7 +86,6 @@ const updateCourseTopic = ({ id, topic }) => {
   coursesData.map((course) => {
     if (course.id === id) {
       course.topic = topic
-      return course
     }
   })
   return coursesData.filter((course) => course.id === id)[0]
@@ -102,12 +95,12 @@ const root = {
   course: getCourse,
   courses: getCourses,
   updateCourseTopic: updateCourseTopic,
-  title: getTitle,
+  getCourseByTitle: getCourseByTitle,
   createCourse: createCourse,
 }
 
 // Create an express server and a GraphQL endpoint
-var app = express()
+const app = express()
 app.use(
   '/',
   graphqlHTTP({
